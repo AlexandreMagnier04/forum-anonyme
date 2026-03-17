@@ -1,0 +1,26 @@
+services:
+  api:
+    build: ./api
+    ports:
+      - "3000:3000"
+    container_name: forum-api
+    environment:
+      - MONGODB_URL=mongodb://database:27017
+    networks:
+      - net-db
+      - net-api
+
+  db:
+    image: mongo:latest
+    container_name: forum-db
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - net-db
+
+networks:
+  net-db:
+  net-api:
+
+volumes:
+  mongo-data:
