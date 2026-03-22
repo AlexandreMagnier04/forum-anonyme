@@ -14,8 +14,6 @@ Vérifier que le thread et le sender fonctionnent correctement :
  docker exec -it forum-sender ping api
 ```
 
-## Test d'erreurs (Envoi & Lecture)
-
 Envoyer un message (via le Sender)
 Depuis un terminal PowerShell, utilise cette commande pour simuler un utilisateur qui publie un message sur le port 8080 :
 
