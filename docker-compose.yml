@@ -30,11 +30,22 @@ services:
     depends_on:
       - api
 
+  #Thread qui lit les données de l'API et les affiche
+  thread:
+    build: ./thread
+    container_name: forum-thread
+    ports:
+      - "80:80" # Expose le port 80 pour accéder au thread depuis l'extérieur du conteneur
+    networks:
+      - net-api # Permet au thread de communiquer avec l'API
+    depends_on:
+      - api
+
 #Configuration des réseaux
 networks:
   net-db: #Isoler la base de données pour éviter les accès non autorisés
     internal: true # Empêche les conteneurs de communiquer avec l'extérieur du réseau
-  net-api: #Isoler l'API et le sender pour éviter les accès non autorisés
+  net-api: #Isoler l'API, le sender et le thread pour éviter les accès non autorisés
     driver: bridge
 
 volumes:
