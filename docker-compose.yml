@@ -1,26 +1,41 @@
 services:
+  #Api qui reçoit les données du sender et les stocke dans la base de données
   api:
     build: ./api
-    ports:
-      - "3000:3000"
     container_name: forum-api
     environment:
-      - MONGODB_URL=mongodb://database:27017
+      - MONGODB_URL=mongodb://db:27017
     networks:
-      - net-db
-      - net-api
+      - net-db # Permet à l'API de communiquer avec la base de données
+      - net-api # Permet à l'API de communiquer avec le sender
 
+  #Base de données MongoDB pour stocker les messages
   db:
     image: mongo:latest
+    restart: always # Redémarre le conteneur en cas de plantage
     container_name: forum-db
     volumes:
-      - mongo-data:/data/db
+      - mongo-data:/data/db # Persiste les données de la base de données
     networks:
-      - net-db
+      - net-db # Permet à la base de données de communiquer avec l'API
 
+  #Sender qui envoie les données à l'API
+  sender:
+    build: ./sender
+    container_name: forum-sender
+    ports:
+      - "8080:8080" # Expose le port 8080 pour accéder au sender depuis l'extérieur du conteneur
+    networks:
+      - net-api # Permet au sender de communiquer avec l'API
+    depends_on:
+      - api
+
+#Configuration des réseaux
 networks:
-  net-db:
-  net-api:
+  net-db: #Isoler la base de données pour éviter les accès non autorisés
+    internal: true # Empêche les conteneurs de communiquer avec l'extérieur du réseau
+  net-api: #Isoler l'API et le sender pour éviter les accès non autorisés
+    driver: bridge
 
 volumes:
   mongo-data:

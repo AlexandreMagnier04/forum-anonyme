@@ -1,36 +1,45 @@
 const express = require("express");
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient } = require("mongodb");
 
 const app = express();
 app.use(express.json());
 
+
 const client = new MongoClient(process.env.MONGODB_URL);
 const db = client.db("forum");
-const products = db.collection("messages");
+const collectionMessages = db.collection("messages");
 
 client.connect().then(() => {
-    console.log("Connected to MongoDB");
+    console.log("Connecté à MongoDB avec succès");
 }).catch((err) => {
-    console.error("Failed to connect to MongoDB", err);
+    console.error("Erreur de connexion MongoDB :", err);
 });
 
 // Route pour envoyer un message (utilisée par le service Sender)
-app.post('/messages', (req, res) => {
+app.post('/messages', async (req, res) => {
     const { pseudonyme, contenu } = req.body;
 
     if (!pseudonyme || !contenu) {
         return res.status(400).json({ error: "Pseudonyme et contenu requis" });
     }
 
-    const newMessage = { id: messages.length + 1, pseudonyme, contenu, date: new Date() };
-    messages.push(newMessage);
-
-    res.status(201).json(newMessage);
+    try {
+        const newMessage = { pseudonyme, contenu, date: new Date() };
+        const result = await collectionMessages.insertOne(newMessage);
+        res.status(201).json({ _id: result.insertedId, ...newMessage });
+    } catch (error) {
+        res.status(500).json({ error: "Erreur lors de l'enregistrement" });
+    }
 });
 
 // Route pour récupérer tous les messages (utilisée par le service Thread)
-app.get('/messages', (req, res) => {
-    res.json(messages);
+app.get('/messages', async (req, res) => {
+    try {
+        const messages = await collectionMessages.find().toArray();
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur lors de la récupération" });
+    }
 });
 
 //Normalement on utilise une variable d'environnement pour le port, mais pour la simplicité on utilise 3000
